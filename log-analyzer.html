@@ -1,0 +1,1240 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CLEF Log Analiz Aracı</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+        
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            font-weight: 300;
+        }
+        
+        .header p {
+            opacity: 0.9;
+            font-size: 1.1em;
+        }
+        
+        .upload-section {
+            padding: 40px;
+            text-align: center;
+            border-bottom: 1px solid #eee;
+        }
+        
+        .file-input-wrapper {
+            position: relative;
+            display: inline-block;
+            margin-bottom: 20px;
+        }
+        
+        .file-input {
+            position: absolute;
+            opacity: 0;
+            width: 100%;
+            height: 100%;
+            cursor: pointer;
+        }
+        
+        .file-input-button {
+            display: inline-block;
+            padding: 15px 30px;
+            background: linear-gradient(135deg, #3498db, #2980b9);
+            color: white;
+            border-radius: 8px;
+            font-size: 1.1em;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+        
+        .file-input-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(52, 152, 219, 0.4);
+        }
+        
+        .file-info {
+            margin: 20px 0;
+            font-size: 1.1em;
+            color: #555;
+        }
+        
+        .analyze-btn {
+            background: linear-gradient(135deg, #27ae60, #229954);
+            color: white;
+            border: none;
+            padding: 15px 40px;
+            font-size: 1.2em;
+            font-weight: 600;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-top: 10px;
+        }
+        
+        .analyze-btn:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(39, 174, 96, 0.4);
+        }
+        
+        .analyze-btn:disabled {
+            background: #bdc3c7;
+            cursor: not-allowed;
+        }
+        
+        .results-section {
+            padding: 40px;
+            display: none;
+        }
+        
+        .filters-section {
+            padding: 20px 40px;
+            border-bottom: 1px solid #eee;
+            background: #f8f9fa;
+        }
+        
+        .filter-title {
+            font-size: 1.2em;
+            font-weight: 600;
+            margin-bottom: 15px;
+            color: #2c3e50;
+        }
+        
+        .filter-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+        
+        .filter-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        
+        .filter-group label {
+            font-weight: 500;
+            color: #555;
+            font-size: 0.9em;
+        }
+        
+        .filter-select {
+            padding: 8px 12px;
+            border: 2px solid #ddd;
+            border-radius: 6px;
+            background: white;
+            font-size: 0.9em;
+            min-width: 150px;
+            transition: border-color 0.3s ease;
+        }
+        
+        .filter-select:focus {
+            outline: none;
+            border-color: #3498db;
+        }
+        
+        .search-input {
+            padding: 8px 12px;
+            border: 2px solid #ddd;
+            border-radius: 6px;
+            background: white;
+            font-size: 0.9em;
+            min-width: 200px;
+            transition: border-color 0.3s ease;
+        }
+        
+        .search-input:focus {
+            outline: none;
+            border-color: #3498db;
+        }
+        
+        .clear-filters-btn {
+            padding: 8px 16px;
+            background: #e74c3c;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.9em;
+            transition: background 0.3s ease;
+        }
+        
+        .clear-filters-btn:hover {
+            background: #c0392b;
+        }
+        
+        .filter-buttons {
+            display: none;
+        }
+        
+        .filter-btn {
+            padding: 8px 16px;
+            border: 2px solid #ddd;
+            background: white;
+            border-radius: 20px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 0.9em;
+            font-weight: 500;
+        }
+        
+        .filter-btn:hover {
+            border-color: #3498db;
+            transform: translateY(-1px);
+        }
+        
+        .filter-btn.active {
+            background: #3498db;
+            color: white;
+            border-color: #3498db;
+        }
+        
+        .filter-btn.all {
+            background: #2c3e50;
+            color: white;
+            border-color: #2c3e50;
+        }
+        
+        .filter-btn.all:hover {
+            background: #34495e;
+            border-color: #34495e;
+        }
+        
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .stat-card {
+            background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+            padding: 25px;
+            border-radius: 10px;
+            text-align: center;
+            border-left: 4px solid;
+        }
+        
+        .stat-card.errors {
+            border-left-color: #e74c3c;
+        }
+        
+        .stat-card.memory {
+            border-left-color: #f39c12;
+        }
+        
+        .stat-card.overflow {
+            border-left-color: #9b59b6;
+        }
+        
+        .stat-card.timespan {
+            border-left-color: #3498db;
+        }
+        
+        .stat-number {
+            font-size: 2.5em;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+        
+        .stat-label {
+            color: #666;
+            font-size: 1.1em;
+        }
+        
+        .errors-list {
+            margin-top: 30px;
+        }
+        
+        .error-item {
+            background: white;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            overflow: hidden;
+            transition: all 0.3s ease;
+        }
+        
+        .error-item:hover {
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+        
+        .error-header {
+            padding: 20px;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .error-type {
+            font-weight: bold;
+            font-size: 1.2em;
+        }
+        
+        .error-type.memory-error {
+            color: #e74c3c;
+        }
+        
+        .error-type.overflow-error {
+            color: #9b59b6;
+        }
+        
+        .error-time {
+            color: #666;
+            font-size: 0.9em;
+        }
+        
+        .error-details {
+            padding: 0 20px 20px;
+            display: none;
+            border-top: 1px solid #eee;
+            background: #f8f9fa;
+        }
+        
+        .error-message {
+            margin: 15px 0;
+            padding: 15px;
+            background: white;
+            border-radius: 5px;
+            border-left: 4px solid #3498db;
+        }
+        
+        .error-location {
+            font-family: 'Courier New', monospace;
+            font-size: 0.9em;
+            color: #666;
+            background: #f1f2f6;
+            padding: 10px;
+            border-radius: 5px;
+            margin: 10px 0;
+        }
+        
+        .stack-methods {
+            max-height: 150px;
+            overflow-y: auto;
+            margin-top: 10px;
+        }
+        
+        .stack-methods.expanded {
+            max-height: none;
+        }
+        
+        .show-more-stack {
+            background: #3498db;
+            color: white;
+            border: none;
+            padding: 5px 12px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.8em;
+            margin-top: 10px;
+            transition: background 0.3s ease;
+        }
+        
+        .show-more-stack:hover {
+            background: #2980b9;
+        }
+        
+        .method-item {
+            padding: 5px 0;
+            border-bottom: 1px solid #eee;
+        }
+        
+        .method-item:last-child {
+            border-bottom: none;
+        }
+        
+        .expand-icon {
+            transition: transform 0.3s ease;
+        }
+        
+        .expanded .expand-icon {
+            transform: rotate(180deg);
+        }
+        
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 20px;
+            color: #666;
+        }
+        
+        .spinner {
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #3498db;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 10px;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .no-errors {
+            text-align: center;
+            padding: 40px;
+            color: #27ae60;
+            font-size: 1.2em;
+        }
+        
+        @media (max-width: 768px) {
+            .container {
+                margin: 10px;
+                border-radius: 10px;
+            }
+            
+            .header {
+                padding: 20px;
+            }
+            
+            .header h1 {
+                font-size: 2em;
+            }
+            
+            .upload-section {
+                padding: 20px;
+            }
+            
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🔍 CLEF Log Analiz Aracı</h1>
+            <p>Datagration log dosyalarını analiz edin ve hataları kolayca görüntüleyin</p>
+        </div>
+        
+        <div class="upload-section">
+            <div class="file-input-wrapper">
+                <input type="file" id="logFile" class="file-input" accept=".clef,.log,.txt">
+                <label for="logFile" class="file-input-button">
+                    📁 Log Dosyası Seçin
+                </label>
+            </div>
+            
+            <div class="file-info" id="fileInfo">
+                Henüz dosya seçilmedi
+            </div>
+            
+            <button class="analyze-btn" id="analyzeBtn" disabled>
+                🚀 Hata Analitiğini Çalıştır
+            </button>
+            
+            <div class="loading" id="loading">
+                <div class="spinner"></div>
+                Log dosyası analiz ediliyor...
+            </div>
+        </div>
+        
+        <div class="results-section" id="resultsSection">
+            <div class="filters-section" id="filtersSection">
+                <div class="filter-title">🔍 Gelişmiş Filtreleme:</div>
+                <div class="filter-row">
+                    <div class="filter-group">
+                        <label for="errorTypeFilter">Hata Türü:</label>
+                        <select id="errorTypeFilter" class="filter-select">
+                            <option value="all">Tüm Hata Türleri</option>
+                        </select>
+                    </div>
+                    <div class="filter-group">
+                        <label for="operationTypeFilter">İşlem Türü:</label>
+                        <select id="operationTypeFilter" class="filter-select">
+                            <option value="all">Tüm İşlem Türleri</option>
+                        </select>
+                    </div>
+                    <div class="filter-group">
+                        <label for="searchInput">Metin Arama:</label>
+                        <input type="text" id="searchInput" class="search-input" placeholder="Hata mesajında ara...">
+                    </div>
+                    <div class="filter-group">
+                        <label>&nbsp;</label>
+                        <button id="clearFiltersBtn" class="clear-filters-btn">🗑️ Filtreleri Temizle</button>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="stats-grid" id="statsGrid">
+                <!-- İstatistikler buraya eklenecek -->
+            </div>
+            
+            <div class="errors-list" id="errorsList">
+                <!-- Hatalar buraya eklenecek -->
+            </div>
+        </div>
+    </div>
+
+    <script>
+        class CLEFLogAnalyzer {
+            constructor() {
+                this.logData = [];
+                this.filteredLogData = [];
+                this.currentFilters = {
+                    errorType: 'all',
+                    operationType: 'all',
+                    searchText: ''
+                };
+                this.errorTypes = new Set();
+                this.operationTypes = new Set();
+                this.initializeEventListeners();
+            }
+            
+            initializeEventListeners() {
+                const fileInput = document.getElementById('logFile');
+                const analyzeBtn = document.getElementById('analyzeBtn');
+                
+                fileInput.addEventListener('change', this.handleFileSelect.bind(this));
+                analyzeBtn.addEventListener('click', this.analyzeLog.bind(this));
+                
+                // Filtreleme event listener'ları (sonradan eklenecek elementler için)
+                document.addEventListener('change', (e) => {
+                    if (e.target.id === 'errorTypeFilter' || e.target.id === 'operationTypeFilter') {
+                        this.applyFilters();
+                    }
+                });
+                
+                document.addEventListener('input', (e) => {
+                    if (e.target.id === 'searchInput') {
+                        // Debounce için timeout kullan
+                        clearTimeout(this.searchTimeout);
+                        this.searchTimeout = setTimeout(() => {
+                            this.applyFilters();
+                        }, 300);
+                    }
+                });
+                
+                document.addEventListener('click', (e) => {
+                    if (e.target.id === 'clearFiltersBtn') {
+                        this.clearFilters();
+                    }
+                });
+            }
+            
+            handleFileSelect(event) {
+                const file = event.target.files[0];
+                const fileInfo = document.getElementById('fileInfo');
+                const analyzeBtn = document.getElementById('analyzeBtn');
+                
+                if (file) {
+                    const fileSize = (file.size / 1024).toFixed(2);
+                    fileInfo.innerHTML = `
+                        <strong>📄 ${file.name}</strong><br>
+                        <span style="color: #666;">Boyut: ${fileSize} KB</span>
+                    `;
+                    analyzeBtn.disabled = false;
+                } else {
+                    fileInfo.textContent = 'Henüz dosya seçilmedi';
+                    analyzeBtn.disabled = true;
+                }
+            }
+            
+            async analyzeLog() {
+                const fileInput = document.getElementById('logFile');
+                const loading = document.getElementById('loading');
+                const resultsSection = document.getElementById('resultsSection');
+                
+                if (!fileInput.files[0]) return;
+                
+                loading.style.display = 'block';
+                resultsSection.style.display = 'none';
+                
+                try {
+                    const fileContent = await this.readFile(fileInput.files[0]);
+                    this.logData = this.parseLogFile(fileContent);
+                    this.filteredLogData = [...this.logData];
+                    this.extractErrorTypes();
+                    this.extractOperationTypes();
+                    this.displayResults();
+                } catch (error) {
+                    console.error('Dosya analiz hatası:', error);
+                    alert('Dosya analiz edilirken bir hata oluştu. Lütfen geçerli bir CLEF log dosyası seçtiğinizden emin olun.');
+                } finally {
+                    loading.style.display = 'none';
+                }
+            }
+            
+            readFile(file) {
+                return new Promise((resolve, reject) => {
+                    const reader = new FileReader();
+                    reader.onload = e => resolve(e.target.result);
+                    reader.onerror = reject;
+                    reader.readAsText(file, 'utf-8');
+                });
+            }
+            
+            parseLogFile(content) {
+                const lines = content.split('\n').filter(line => line.trim());
+                const parsedLogs = [];
+                
+                lines.forEach((line, index) => {
+                    try {
+                        if (line.trim()) {
+                            const logEntry = JSON.parse(line);
+                            const parsed = this.parseLogEntry(logEntry, index + 1);
+                            if (parsed) {
+                                parsedLogs.push(parsed);
+                            }
+                        }
+                    } catch (e) {
+                        console.warn(`Satır ${index + 1} parse edilemedi:`, e);
+                    }
+                });
+                
+                return parsedLogs;
+            }
+            
+            parseLogEntry(entry, lineNumber) {
+                // Sadece Error seviyesindeki logları işle
+                if (entry['@l'] !== 'Error') return null;
+                
+                const timestamp = new Date(entry['@t']);
+                const message = entry['@mt'] || 'Bilinmeyen hata';
+                const exception = entry['@x'] || '';
+                
+                // Hata türünü dinamik olarak belirle
+                const { errorType, errorCategory } = this.detectErrorType(exception, message);
+                
+                // İşlem türünü dinamik olarak belirle
+                const operationType = this.detectOperationType(message, exception);
+                
+                // Stack trace'den önemli bilgileri çıkar
+                const stackInfo = this.extractStackInfo(exception);
+                
+                return {
+                    lineNumber,
+                    timestamp,
+                    errorType,
+                    errorCategory,
+                    operationType,
+                    message: this.cleanMessage(message),
+                    stackInfo,
+                    rawException: exception,
+                    sourcePath: stackInfo.mainFile || 'Bilinmeyen',
+                    lineInCode: stackInfo.lineNumber || 'Bilinmeyen'
+                };
+            }
+            
+            extractStackInfo(exception) {
+                if (!exception) return { mainFile: null, lineNumber: null, methods: [] };
+                
+                const lines = exception.split('\n').map(line => line.trim());
+                const methods = [];
+                let mainFile = null;
+                let lineNumber = null;
+                
+                lines.forEach(line => {
+                    // Method çağrılarını bul
+                    const methodMatch = line.match(/at\s+(.*?)\s+in\s+(.*?):line\s+(\d+)/);
+                    if (methodMatch) {
+                        const [, method, file, line] = methodMatch;
+                        methods.push({
+                            method: method.replace('async Task<Result> ', '').replace('async Task ', ''),
+                            file: file.split('/').pop(),
+                            line: parseInt(line)
+                        });
+                        
+                        if (!mainFile) {
+                            mainFile = file.split('/').pop();
+                            lineNumber = parseInt(line);
+                        }
+                    }
+                });
+                
+                return { mainFile, lineNumber, methods };
+            }
+            
+            detectOperationType(message, exception) {
+                // 1. Önce mesajdan anahtar kelimeleri çıkar
+                const messageOperationType = this.extractOperationFromMessage(message);
+                if (messageOperationType !== 'Bilinmeyen İşlem') {
+                    return messageOperationType;
+                }
+                
+                // 2. Exception'dan class/method isimlerinden çıkar
+                const exceptionOperationType = this.extractOperationFromException(exception);
+                if (exceptionOperationType !== 'Bilinmeyen İşlem') {
+                    return exceptionOperationType;
+                }
+                
+                // 3. Son çare olarak genel işlem
+                return 'Genel İşlem';
+            }
+            
+            extractOperationFromMessage(message) {
+                if (!message) return 'Bilinmeyen İşlem';
+                
+                const lowerMessage = message.toLowerCase();
+                
+                // Türkçe anahtar kelimelerden işlem türü çıkar
+                if (lowerMessage.includes('sipariş')) {
+                    if (lowerMessage.includes('satınalma') || lowerMessage.includes('satinalma')) {
+                        return 'Satınalma Sipariş';
+                    } else if (lowerMessage.includes('satış') || lowerMessage.includes('satis')) {
+                        return 'Satış Sipariş';
+                    }
+                    return 'Sipariş İşlemi';
+                }
+                
+                if (lowerMessage.includes('transfer')) {
+                    if (lowerMessage.includes('cari')) return 'Cari Transfer';
+                    if (lowerMessage.includes('stok')) return 'Stok Transfer';
+                    if (lowerMessage.includes('fason')) return 'Fason Transfer';
+                    return 'Transfer İşlemi';
+                }
+                
+                if (lowerMessage.includes('giriş') || lowerMessage.includes('giris')) {
+                    if (lowerMessage.includes('fason')) return 'Fason Giriş';
+                    if (lowerMessage.includes('kullanıcı') || lowerMessage.includes('kullanici')) return 'Kullanıcı Giriş';
+                    return 'Giriş İşlemi';
+                }
+                
+                // Diğer genel terimler
+                if (lowerMessage.includes('rapor')) return 'Rapor İşlemi';
+                if (lowerMessage.includes('yedek') || lowerMessage.includes('backup')) return 'Yedekleme İşlemi';
+                if (lowerMessage.includes('senkron') || lowerMessage.includes('sync')) return 'Senkronizasyon';
+                if (lowerMessage.includes('doğrulama') || lowerMessage.includes('validation')) return 'Doğrulama İşlemi';
+                if (lowerMessage.includes('kimlik') || lowerMessage.includes('auth')) return 'Kimlik Doğrulama';
+                if (lowerMessage.includes('yetki') || lowerMessage.includes('authorization')) return 'Yetkilendirme';
+                if (lowerMessage.includes('konfigür') || lowerMessage.includes('config')) return 'Konfigürasyon';
+                if (lowerMessage.includes('migration') || lowerMessage.includes('taşıma')) return 'Veri Taşıma';
+                if (lowerMessage.includes('temizlik') || lowerMessage.includes('cleanup')) return 'Temizlik İşlemi';
+                if (lowerMessage.includes('import') || lowerMessage.includes('içe aktarma')) return 'İçe Aktarma';
+                if (lowerMessage.includes('export') || lowerMessage.includes('dışa aktarma')) return 'Dışa Aktarma';
+                
+                return 'Bilinmeyen İşlem';
+            }
+            
+            extractOperationFromException(exception) {
+                if (!exception) return 'Bilinmeyen İşlem';
+                
+                // Exception'dan class ve method isimlerini çıkar
+                const lines = exception.split('\n');
+                
+                for (const line of lines) {
+                    // Method çağrı satırlarını bul
+                    const methodMatch = line.match(/at\s+(.*?)\s+in\s+/);
+                    if (methodMatch) {
+                        const methodPath = methodMatch[1];
+                        
+                        // Class isimlerinden işlem türü çıkar
+                        if (methodPath.includes('TransferSend')) {
+                            // Spesifik transfer türlerini bul
+                            if (methodPath.includes('SatinalmaSiparis')) return 'Satınalma Sipariş Transfer';
+                            if (methodPath.includes('SatisSiparis')) return 'Satış Sipariş Transfer';
+                            if (methodPath.includes('FasonGiris')) return 'Fason Giriş Transfer';
+                            if (methodPath.includes('Cari')) return 'Cari Transfer';
+                            return 'Transfer İşlemi';
+                        }
+                        
+                        if (methodPath.includes('CommandHandler')) return 'Komut İşlemi';
+                        if (methodPath.includes('QueryHandler')) return 'Sorgu İşlemi';
+                        if (methodPath.includes('Service')) return 'Servis İşlemi';
+                        if (methodPath.includes('Controller')) return 'Controller İşlemi';
+                        if (methodPath.includes('Repository')) return 'Veri İşlemi';
+                        if (methodPath.includes('Adapter')) return 'Adaptör İşlemi';
+                        if (methodPath.includes('Manager')) return 'Yönetim İşlemi';
+                        if (methodPath.includes('Validator')) return 'Doğrulama İşlemi';
+                        if (methodPath.includes('Mapper')) return 'Haritalama İşlemi';
+                        if (methodPath.includes('Authentication')) return 'Kimlik Doğrulama';
+                        if (methodPath.includes('Authorization')) return 'Yetkilendirme';
+                        if (methodPath.includes('Configuration')) return 'Konfigürasyon';
+                        if (methodPath.includes('Migration')) return 'Veri Taşıma';
+                        if (methodPath.includes('Backup')) return 'Yedekleme İşlemi';
+                        if (methodPath.includes('Report')) return 'Rapor İşlemi';
+                        if (methodPath.includes('Import')) return 'İçe Aktarma';
+                        if (methodPath.includes('Export')) return 'Dışa Aktarma';
+                        if (methodPath.includes('Sync')) return 'Senkronizasyon';
+                        if (methodPath.includes('Cleanup')) return 'Temizlik İşlemi';
+                        
+                        // Namespace'lerden genel çıkarım
+                        if (methodPath.includes('.Features.')) {
+                            const featureMatch = methodPath.match(/\.Features\.([^.]+)/);
+                            if (featureMatch) {
+                                const featureName = featureMatch[1];
+                                return this.formatFeatureName(featureName);
+                            }
+                        }
+                        
+                        // Son çare olarak method isminden çıkar
+                        const lastPart = methodPath.split('.').pop();
+                        if (lastPart && lastPart !== methodPath) {
+                            return this.formatMethodName(lastPart);
+                        }
+                    }
+                }
+                
+                return 'Bilinmeyen İşlem';
+            }
+            
+            formatFeatureName(featureName) {
+                // CamelCase'i Türkçe'ye çevir
+                const formatted = featureName
+                    .replace(/([A-Z])/g, ' $1')
+                    .trim()
+                    .toLowerCase();
+                
+                // İlk harfi büyük yap
+                return formatted.charAt(0).toUpperCase() + formatted.slice(1) + ' İşlemi';
+            }
+            
+            formatMethodName(methodName) {
+                // Method isminden anlamlı işlem türü çıkar
+                if (methodName.includes('Send')) return 'Gönderme İşlemi';
+                if (methodName.includes('Receive')) return 'Alma İşlemi';
+                if (methodName.includes('Process')) return 'İşleme';
+                if (methodName.includes('Handle')) return 'İşleme';
+                if (methodName.includes('Execute')) return 'Çalıştırma';
+                if (methodName.includes('Create')) return 'Oluşturma';
+                if (methodName.includes('Update')) return 'Güncelleme';
+                if (methodName.includes('Delete')) return 'Silme';
+                if (methodName.includes('Get')) return 'Sorgulama';
+                if (methodName.includes('Set')) return 'Ayarlama';
+                if (methodName.includes('Validate')) return 'Doğrulama';
+                if (methodName.includes('Transform')) return 'Dönüştürme';
+                if (methodName.includes('Map')) return 'Haritalama';
+                
+                return 'Genel İşlem';
+            }
+            
+            detectErrorType(exception, message) {
+                let errorType = 'Genel Hata';
+                let errorCategory = 'general';
+                
+                // Exception türlerini tespit et
+                const exceptionPatterns = {
+                    'OutOfMemoryException': { type: 'Bellek Hatası', category: 'memory' },
+                    'OverflowException': { type: 'Taşma Hatası', category: 'overflow' },
+                    'ArgumentException': { type: 'Parametre Hatası', category: 'argument' },
+                    'NullReferenceException': { type: 'Null Referans Hatası', category: 'nullref' },
+                    'InvalidOperationException': { type: 'Geçersiz İşlem Hatası', category: 'invalidop' },
+                    'TimeoutException': { type: 'Zaman Aşımı Hatası', category: 'timeout' },
+                    'SqlException': { type: 'Veritabanı Hatası', category: 'sql' },
+                    'HttpRequestException': { type: 'HTTP İstek Hatası', category: 'http' },
+                    'UnauthorizedAccessException': { type: 'Yetki Hatası', category: 'auth' },
+                    'FileNotFoundException': { type: 'Dosya Bulunamadı Hatası', category: 'file' },
+                    'DirectoryNotFoundException': { type: 'Dizin Bulunamadı Hatası', category: 'directory' },
+                    'NetworkException': { type: 'Ağ Hatası', category: 'network' },
+                    'SerializationException': { type: 'Serileştirme Hatası', category: 'serialization' },
+                    'ConfigurationException': { type: 'Konfigürasyon Hatası', category: 'config' }
+                };
+                
+                // Exception türünü bul
+                for (const [pattern, info] of Object.entries(exceptionPatterns)) {
+                    if (exception.includes(pattern)) {
+                        errorType = info.type;
+                        errorCategory = info.category;
+                        break;
+                    }
+                }
+                
+                // Eğer spesifik exception bulunamadıysa, mesajdan çıkarım yap
+                if (errorType === 'Genel Hata') {
+                    if (message.includes('timeout') || message.includes('zaman aşımı')) {
+                        errorType = 'Zaman Aşımı Hatası';
+                        errorCategory = 'timeout';
+                    } else if (message.includes('connection') || message.includes('bağlantı')) {
+                        errorType = 'Bağlantı Hatası';
+                        errorCategory = 'connection';
+                    } else if (message.includes('validation') || message.includes('doğrulama')) {
+                        errorType = 'Doğrulama Hatası';
+                        errorCategory = 'validation';
+                    }
+                }
+                
+                return { errorType, errorCategory };
+            }
+            
+            cleanMessage(message) {
+                return message
+                    .replace(/\{[^}]*\}/g, '') // Template parametrelerini kaldır
+                    .replace(/\s+/g, ' ')      // Çoklu boşlukları tek boşluk yap
+                    .trim();
+            }
+            
+            extractErrorTypes() {
+                this.errorTypes.clear();
+                this.logData.forEach(log => {
+                    this.errorTypes.add(log.errorCategory);
+                });
+            }
+            
+            extractOperationTypes() {
+                this.operationTypes.clear();
+                this.logData.forEach(log => {
+                    this.operationTypes.add(log.operationType);
+                });
+            }
+            
+            displayResults() {
+                const resultsSection = document.getElementById('resultsSection');
+                
+                if (this.logData.length === 0) {
+                    resultsSection.innerHTML = `
+                        <div class="no-errors">
+                            ✅ Bu log dosyasında hata bulunamadı!
+                        </div>
+                    `;
+                    resultsSection.style.display = 'block';
+                    return;
+                }
+                
+                this.setupFilters();
+                this.applyFilters();
+                resultsSection.style.display = 'block';
+            }
+            
+            setupFilters() {
+                // Hata türü dropdown'unu doldur
+                const errorTypeFilter = document.getElementById('errorTypeFilter');
+                const operationTypeFilter = document.getElementById('operationTypeFilter');
+                
+                // Hata türü etiketleri
+                const errorTypeMap = {
+                    'memory': 'Bellek Hatası',
+                    'overflow': 'Taşma Hatası',
+                    'argument': 'Parametre Hatası',
+                    'nullref': 'Null Referans',
+                    'invalidop': 'Geçersiz İşlem',
+                    'timeout': 'Zaman Aşımı',
+                    'sql': 'Veritabanı',
+                    'http': 'HTTP İstek',
+                    'auth': 'Yetki',
+                    'file': 'Dosya',
+                    'directory': 'Dizin',
+                    'network': 'Ağ',
+                    'serialization': 'Serileştirme',
+                    'config': 'Konfigürasyon',
+                    'connection': 'Bağlantı',
+                    'validation': 'Doğrulama',
+                    'general': 'Genel'
+                };
+                
+                // Hata türü seçeneklerini ekle
+                errorTypeFilter.innerHTML = '<option value="all">Tüm Hata Türleri</option>';
+                Array.from(this.errorTypes).sort().forEach(category => {
+                    const displayName = errorTypeMap[category] || category;
+                    const count = this.logData.filter(log => log.errorCategory === category).length;
+                    const option = document.createElement('option');
+                    option.value = category;
+                    option.textContent = `${displayName} (${count})`;
+                    errorTypeFilter.appendChild(option);
+                });
+                
+                // İşlem türü seçeneklerini ekle
+                operationTypeFilter.innerHTML = '<option value="all">Tüm İşlem Türleri</option>';
+                Array.from(this.operationTypes).sort().forEach(operationType => {
+                    const count = this.logData.filter(log => log.operationType === operationType).length;
+                    const option = document.createElement('option');
+                    option.value = operationType;
+                    option.textContent = `${operationType} (${count})`;
+                    operationTypeFilter.appendChild(option);
+                });
+            }
+            
+            applyFilters() {
+                const errorTypeFilter = document.getElementById('errorTypeFilter');
+                const operationTypeFilter = document.getElementById('operationTypeFilter');
+                const searchInput = document.getElementById('searchInput');
+                
+                if (!errorTypeFilter || !operationTypeFilter || !searchInput) return;
+                
+                // Mevcut filtre değerlerini al
+                this.currentFilters.errorType = errorTypeFilter.value;
+                this.currentFilters.operationType = operationTypeFilter.value;
+                this.currentFilters.searchText = searchInput.value.toLowerCase().trim();
+                
+                // Filtreleri uygula
+                this.filteredLogData = this.logData.filter(log => {
+                    // Hata türü filtresi
+                    const errorTypeMatch = this.currentFilters.errorType === 'all' || 
+                                          log.errorCategory === this.currentFilters.errorType;
+                    
+                    // İşlem türü filtresi
+                    const operationTypeMatch = this.currentFilters.operationType === 'all' || 
+                                              log.operationType === this.currentFilters.operationType;
+                    
+                    // Metin arama filtresi
+                    const searchMatch = !this.currentFilters.searchText || 
+                                       log.message.toLowerCase().includes(this.currentFilters.searchText) ||
+                                       log.errorType.toLowerCase().includes(this.currentFilters.searchText) ||
+                                       log.operationType.toLowerCase().includes(this.currentFilters.searchText) ||
+                                       log.rawException.toLowerCase().includes(this.currentFilters.searchText);
+                    
+                    return errorTypeMatch && operationTypeMatch && searchMatch;
+                });
+                
+                // Sonuçları güncelle
+                this.displayStats();
+                this.displayErrors();
+            }
+            
+            clearFilters() {
+                // Filtreleri sıfırla
+                document.getElementById('errorTypeFilter').value = 'all';
+                document.getElementById('operationTypeFilter').value = 'all';
+                document.getElementById('searchInput').value = '';
+                
+                // Filtreleri uygula
+                this.applyFilters();
+            }
+            
+            isAnyFilterActive() {
+                return this.currentFilters.errorType !== 'all' || 
+                       this.currentFilters.operationType !== 'all' || 
+                       this.currentFilters.searchText !== '';
+            }
+            
+            displayStats() {
+                const statsGrid = document.getElementById('statsGrid');
+                
+                const totalErrors = this.filteredLogData.length;
+                
+                // Zaman aralığını hesapla
+                const timestamps = this.filteredLogData.map(log => log.timestamp).sort();
+                const timeSpan = timestamps.length > 1 ? 
+                    this.formatTimeDifference(timestamps[0], timestamps[timestamps.length - 1]) : 
+                    timestamps.length === 1 ? 'Tek olay' : 'Veri yok';
+                
+                // Hata türü etiketleri
+                const errorTypeMap = {
+                    'memory': 'Bellek Hatası',
+                    'overflow': 'Taşma Hatası',
+                    'argument': 'Parametre Hatası',
+                    'nullref': 'Null Referans',
+                    'invalidop': 'Geçersiz İşlem',
+                    'timeout': 'Zaman Aşımı',
+                    'sql': 'Veritabanı',
+                    'http': 'HTTP İstek',
+                    'auth': 'Yetki',
+                    'file': 'Dosya',
+                    'directory': 'Dizin',
+                    'network': 'Ağ',
+                    'serialization': 'Serileştirme',
+                    'config': 'Konfigürasyon',
+                    'connection': 'Bağlantı',
+                    'validation': 'Doğrulama',
+                    'general': 'Genel'
+                };
+                
+                // Filtrelenmiş verideki hata türlerini say
+                const errorCounts = {};
+                this.filteredLogData.forEach(log => {
+                    errorCounts[log.errorCategory] = (errorCounts[log.errorCategory] || 0) + 1;
+                });
+                
+                // En çok olan 3 hata türünü al (toplam hariç)
+                const sortedErrorTypes = Object.entries(errorCounts)
+                    .sort((a, b) => b[1] - a[1])
+                    .slice(0, 3);
+                
+                let statsHtml = `
+                    <div class="stat-card errors">
+                        <div class="stat-number">${totalErrors}</div>
+                        <div class="stat-label">${this.isAnyFilterActive() ? 'Filtrelenmiş' : 'Toplam'} Hata</div>
+                    </div>
+                `;
+                
+                // Dinamik hata türü kartları
+                sortedErrorTypes.forEach(([category, count], index) => {
+                    const cardClass = ['memory', 'overflow', 'timespan'][index] || 'memory'; // CSS sınıfları için
+                    const displayName = errorTypeMap[category] || category;
+                    
+                    statsHtml += `
+                        <div class="stat-card ${cardClass}">
+                            <div class="stat-number">${count}</div>
+                            <div class="stat-label">${displayName}</div>
+                        </div>
+                    `;
+                });
+                
+                // Eğer 3'ten az hata türü varsa, zaman aralığını ekle
+                if (sortedErrorTypes.length < 3) {
+                    statsHtml += `
+                        <div class="stat-card timespan">
+                            <div class="stat-number" style="font-size: 1.5em;">${timeSpan}</div>
+                            <div class="stat-label">Zaman Aralığı</div>
+                        </div>
+                    `;
+                }
+                
+                // Eğer sadece 1 hata türü varsa, işlem türü istatistiği ekle
+                if (sortedErrorTypes.length === 1 && this.filteredLogData.length > 1) {
+                    const operationCounts = {};
+                    this.filteredLogData.forEach(log => {
+                        operationCounts[log.operationType] = (operationCounts[log.operationType] || 0) + 1;
+                    });
+                    
+                    const topOperation = Object.entries(operationCounts)
+                        .sort((a, b) => b[1] - a[1])[0];
+                    
+                    if (topOperation) {
+                        statsHtml += `
+                            <div class="stat-card overflow">
+                                <div class="stat-number">${topOperation[1]}</div>
+                                <div class="stat-label">${topOperation[0]}</div>
+                            </div>
+                        `;
+                    }
+                }
+                
+                statsGrid.innerHTML = statsHtml;
+            }
+            
+            displayErrors() {
+                const errorsList = document.getElementById('errorsList');
+                
+                if (this.filteredLogData.length === 0) {
+                    errorsList.innerHTML = `
+                        <div class="no-errors">
+                            🔍 Bu filtrede hata bulunamadı!
+                        </div>
+                    `;
+                    return;
+                }
+                
+                const errorsHtml = this.filteredLogData.map((log, index) => `
+                    <div class="error-item">
+                        <div class="error-header" onclick="this.parentElement.classList.toggle('expanded'); this.nextElementSibling.style.display = this.nextElementSibling.style.display === 'block' ? 'none' : 'block'">
+                            <div>
+                                <div class="error-type ${log.errorCategory}-error">
+                                    ${log.errorType} - ${log.operationType}
+                                </div>
+                                <div class="error-time">
+                                    📅 ${this.formatDateTime(log.timestamp)} | 📍 Satır: ${log.lineNumber}
+                                </div>
+                            </div>
+                            <div class="expand-icon">▼</div>
+                        </div>
+                        <div class="error-details">
+                            <div class="error-message">
+                                <strong>Hata Mesajı:</strong><br>
+                                ${log.message}
+                            </div>
+                            ${log.stackInfo.mainFile ? `
+                                <div class="error-location">
+                                    <strong>📂 Dosya:</strong> ${log.stackInfo.mainFile}<br>
+                                    <strong>📍 Satır:</strong> ${log.stackInfo.lineNumber}
+                                </div>
+                            ` : ''}
+                            ${log.stackInfo.methods.length > 0 ? `
+                                <div class="error-location">
+                                    <strong>🔄 Method Çağrı Zinciri:</strong>
+                                    <div class="stack-methods" id="stack-${index}">
+                                        ${log.stackInfo.methods.slice(0, 3).map(method => 
+                                            `<div class="method-item">• ${method.method.split('.').pop()} (${method.file}:${method.line})</div>`
+                                        ).join('')}
+                                        ${log.stackInfo.methods.length > 3 ? `
+                                            <div class="method-item">• ... ve ${log.stackInfo.methods.length - 3} method daha</div>
+                                        ` : ''}
+                                    </div>
+                                    ${log.stackInfo.methods.length > 3 ? `
+                                        <button class="show-more-stack" onclick="analyzer.toggleStackTrace(${index})">
+                                            Tamamını Göster
+                                        </button>
+                                    ` : ''}
+                                </div>
+                            ` : ''}
+                        </div>
+                    </div>
+                `).join('');
+                
+                errorsList.innerHTML = errorsHtml;
+            }
+            
+            formatDateTime(date) {
+                return new Intl.DateTimeFormat('tr-TR', {
+                    day: '2-digit',
+                    month: '2-digit',
+                    year: 'numeric',
+                    hour: '2-digit',
+                    minute: '2-digit',
+                    second: '2-digit'
+                }).format(date);
+            }
+            
+            formatTimeDifference(start, end) {
+                const diffMs = end - start;
+                const diffMinutes = Math.floor(diffMs / (1000 * 60));
+                
+                if (diffMinutes < 60) {
+                    return `${diffMinutes} dk`;
+                } else {
+                    const hours = Math.floor(diffMinutes / 60);
+                    const minutes = diffMinutes % 60;
+                    return `${hours}s ${minutes}dk`;
+                }
+            }
+            
+            toggleStackTrace(index) {
+                const stackElement = document.getElementById(`stack-${index}`);
+                const button = event.target;
+                const log = this.filteredLogData[index];
+                
+                if (stackElement.classList.contains('expanded')) {
+                    // Kısalt
+                    stackElement.classList.remove('expanded');
+                    stackElement.innerHTML = log.stackInfo.methods.slice(0, 3).map(method => 
+                        `<div class="method-item">• ${method.method.split('.').pop()} (${method.file}:${method.line})</div>`
+                    ).join('') + 
+                    (log.stackInfo.methods.length > 3 ? `<div class="method-item">• ... ve ${log.stackInfo.methods.length - 3} method daha</div>` : '');
+                    button.textContent = 'Tamamını Göster';
+                } else {
+                    // Genişlet
+                    stackElement.classList.add('expanded');
+                    stackElement.innerHTML = log.stackInfo.methods.map(method => 
+                        `<div class="method-item">• ${method.method.split('.').pop()} (${method.file}:${method.line})</div>`
+                    ).join('');
+                    button.textContent = 'Kısalt';
+                }
+            }
+        }
+        
+        // Global analyzer değişkeni
+        let analyzer;
+        
+        // Uygulamayı başlat
+        document.addEventListener('DOMContentLoaded', () => {
+            analyzer = new CLEFLogAnalyzer();
+        });
+    </script>
+</body>
+</html>
