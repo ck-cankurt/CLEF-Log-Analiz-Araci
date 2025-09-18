@@ -1,4 +1,4 @@
-[![CLEF Log Analiz Aracı](https://img.shields.io/badge/Aç-CLEF_Log_Analiz_Aracı-blue?style=for-the-badge)](https://ck-cankurt.github.io/CLEF-Log-Analiz-Araci/log-analyzer.html)
+[👉 CLEF Log Analiz Aracı Uygulamasını Aç](https://ck-cankurt.github.io/CLEF-Log-Analiz-Araci/log-analyzer.html)
 
 
 ## 📋 Proje Hakkında
